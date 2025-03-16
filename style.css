@@ -1,0 +1,40 @@
+h1{
+    color: brown;
+}
+
+p{
+    color: blue;
+    font-size: 30px;
+}
+
+.paragraf{
+    color: cadetblue;
+    font-size: 20px;
+}
+
+.bg-teal{
+    background-color: blueviolet;
+}
+
+#p2{
+    color: chartreuse;
+}
+input[type=text]{
+    background-color: blue;
+}
+input[type=password]{
+    background-color: rgb(255, 255, 255);
+}
+
+/* *{
+    border: 4px solid;
+    background-color: rgb(172, 212, 212);
+} */
+
+button:hover {
+    background-color: yellow;
+}
+h3::first-letter{
+    color: brown;
+    font-size: 50px;
+}
