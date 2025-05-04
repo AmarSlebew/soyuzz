@@ -1,0 +1,185 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class Node {
+public:
+    string name;
+    bool isDirectory;
+    Node* parent;
+    Node* firstChild;
+    Node* nextSibling;
+
+    Node(string name, bool isDirectory, Node* parent = nullptr)
+        : name(name), isDirectory(isDirectory), parent(parent), firstChild(nullptr), nextSibling(nullptr) {}
+};
+
+class FileSystem {
+private:
+    Node* root;
+    Node* current;
+
+    Node* findChild(const string& name) {
+        Node* child = current->firstChild;
+        while (child) {
+            if (child->name == name) {
+                return child;
+            }
+            child = child->nextSibling;
+        }
+        return nullptr;
+    }
+
+public:
+    FileSystem() {
+        root = new Node("root", true);
+        current = root;
+    }
+
+    ~FileSystem() {
+        deleteNode(root);
+    }
+
+    void deleteNode(Node* node) {
+        if (node) {
+            deleteNode(node->firstChild);
+            deleteNode(node->nextSibling);
+            delete node;
+        }
+    }
+
+    void mkdir(const string& name) {
+        if (findChild(name)) {
+            cout << "Directory already exists.\n";
+            return;
+        }
+        Node* newNode = new Node(name, true, current);
+        if (!current->firstChild) {
+            current->firstChild = newNode;
+        } else {
+            Node* sibling = current->firstChild;
+            while (sibling->nextSibling) {
+                sibling = sibling->nextSibling;
+            }
+            sibling->nextSibling = newNode;
+        }
+    }
+
+    void mkfile(const string& name) {
+        if (findChild(name)) {
+            cout << "File already exists.\n";
+            return;
+        }
+        Node* newNode = new Node(name, false, current);
+        if (!current->firstChild) {
+            current->firstChild = newNode;
+        } else {
+            Node* sibling = current->firstChild;
+            while (sibling->nextSibling) {
+                sibling = sibling->nextSibling;
+            }
+            sibling->nextSibling = newNode;
+        }
+    }
+
+    void del(const string& name) {
+        Node* child = current->firstChild;
+        Node* prev = nullptr;
+        while (child) {
+            if (child->name == name) {
+                if (prev) {
+                    prev->nextSibling = child->nextSibling;
+                } else {
+                    current->firstChild = child->nextSibling;
+                }
+                child->nextSibling = nullptr; // Tambahan penting supaya aman
+                deleteNode(child);
+                cout << "Deleted successfully.\n";
+                return;
+            }
+            prev = child;
+            child = child->nextSibling;
+        }
+        cout << "File or directory not found.\n";
+    }
+
+    void dir() const {
+        Node* child = current->firstChild;
+        if (!child) {
+            cout << "(empty)\n";
+            return;
+        }
+        while (child) {
+            cout << (child->isDirectory ? "[DIR] " : "[FILE] ") << child->name << "\n";
+            child = child->nextSibling;
+        }
+    }
+
+    void cd(const string& name) {
+        if (name == "..") {
+            if (current->parent) {
+                current = current->parent;
+            } else {
+                cout << "Already at root directory.\n";
+            }
+        } else {
+            Node* nextDir = findChild(name);
+            if (nextDir && nextDir->isDirectory) {
+                current = nextDir;
+            } else {
+                cout << "Directory not found.\n";
+            }
+        }
+    }
+
+    void pwd() const {
+        if (current == root) {
+            cout << "/" << root->name << "\n";
+            return;
+        }
+
+        string path;
+        Node* temp = current;
+        while (temp) {
+            path = "/" + temp->name + path;
+            temp = temp->parent;
+        }
+        cout << path << "\n";
+    }
+};
+
+int main() {
+    FileSystem fs;
+    string command, argument;
+
+    while (true) {
+        cout << "> ";
+        cin >> command;
+
+        if (command == "exit") break;
+
+        if (command == "mkdir" || command == "mkfile" || command == "del" || command == "cd") {
+            cin >> ws; // Membuang whitespace
+            getline(cin, argument);
+        }
+
+        if (command == "mkdir") {
+            fs.mkdir(argument);
+        } else if (command == "mkfile") {
+            fs.mkfile(argument);
+        } else if (command == "del") {
+            fs.del(argument);
+        } else if (command == "cd") {
+            fs.cd(argument);
+        } else if (command == "dir") {
+            fs.dir();
+        } else if (command == "pwd") {
+            fs.pwd();
+        } else {
+            cout << "Unknown command.\n";
+        }
+    }
+
+    return 0;
+}
